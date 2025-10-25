@@ -1,0 +1,132 @@
+﻿@page "/login"
+@layout LoginLayout
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
+@inject ILocalStorageService localStorage
+
+<MudGrid>
+  <MudItem xs="12">
+    &nbsp;
+  </MudItem>
+  <MudItem xs="3">
+    &nbsp;
+  </MudItem>
+  <MudItem xs="6">
+    <MudPaper Elevation="8" Outlined="true">
+      <MudGrid>
+        <MudItem xs="12">
+          <MudText Align="Align.Center" Typo="Typo.body2" Style="font-family: Verdana, Tahoma; font-size: 20px; color: blue">Login to <i>Computer Science in Marathi</i> !</MudText>
+        </MudItem>
+      </MudGrid>
+      <MudGrid>
+        <MudItem xs="12">
+          &nbsp;
+        </MudItem>
+      </MudGrid>
+      <MudGrid>
+        <MudItem xs="3">
+        </MudItem>
+        <MudItem xs="6">
+          <MudLink Href="https://www.youtube.com/&#64;computerscienceinmarathi" title="Computer Science in Marathi" Target="_blank"> <MudImage Src="/images/csim.png" Style="height: 100%; width: 100%" /></MudLink>
+        </MudItem>
+        <MudItem xs="3">
+        </MudItem>
+      </MudGrid>
+      <MudGrid>
+        <MudItem xs="12">
+          &nbsp;
+        </MudItem>
+      </MudGrid>
+      <MudGrid>
+        <MudItem xs="12">
+          <MudText Style="font-family: Verdana, Tahoma; font-size: 14px; align-content:center; text-align: center;" Typo="Typo.body2">संगणक शास्त्र शिकण्यातील भाषेचा  अडथळा  दूर करण्याचा एक प्रामणिक प्रयत्‍न.</MudText>
+        </MudItem>
+      </MudGrid>
+      <MudGrid>
+        <MudItem xs="12">
+          &nbsp;
+        </MudItem>
+      </MudGrid>
+      <MudGrid>
+        <MudItem xs="3">
+        </MudItem>
+        <MudItem xs="6">
+          <div class="g_id_signin"></div>
+        </MudItem>
+        <MudItem xs="3">
+        </MudItem>
+      </MudGrid>
+      <MudGrid>
+        <MudItem xs="3">
+        </MudItem>
+        <MudItem xs="6">
+          <MudButton Variant="@Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Color="@Color.Secondary" onclick="Back2Home">Back to Home Page</MudButton>
+          <MudButton Variant="@Variant.Filled" StartIcon="@Icons.Material.Filled.Logout" Color="@Color.Error" onclick="Back2Home">Logout</MudButton>
+        </MudItem>
+        <MudItem xs="3">
+        </MudItem>
+      </MudGrid>
+    </MudPaper>
+  </MudItem>
+  <MudItem xs="3">
+  </MudItem>
+  <MudItem xs="12">
+  </MudItem>
+</MudGrid>
+
+@code {
+
+  private void Back2Home()
+  {
+    navigationManager.NavigateTo("/");
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      var objRef = DotNetObjectReference.Create(this);
+      await jsRuntime.InvokeVoidAsync("initializeGoogleInterop", objRef);
+      await jsRuntime.InvokeVoidAsync("forceRenderGoogleButton");
+    }
+  }
+
+  [JSInvokable]
+  public async Task SetUser(string name, string email, string picture)
+  {
+    Console.WriteLine("SetUser called in Login page");
+    await localStorage.SetItemAsync("name", name);
+    await localStorage.SetItemAsync("email", email);
+    await localStorage.SetItemAsync("picture", picture);
+    StateHasChanged();
+    // Boolean userExists = await UserExists(email);
+
+    // if (userExists)
+    // {
+    //   Console.WriteLine("if userExists");
+    //   if (appUser.MfaEnabled)
+    //   {
+    //     Console.WriteLine("if mfaEnabled");
+    //     if (appUser.TotpSecret == null)
+    //       navigationManager.NavigateTo("/mfa-register", forceLoad: true);
+    //     else
+    //       navigationManager.NavigateTo("/mfa-authenticate", forceLoad: true);
+    //   }
+    //   else
+        navigationManager.NavigateTo("/");
+    // }
+    // else
+    //   navigationManager.NavigateTo("/unauthorized", forceLoad: true);
+
+    await Task.CompletedTask;
+  }
+
+  // private async Task<Boolean> UserExists(String appUserID)
+  // {
+  //   Console.WriteLine("UserExists called in Login page");
+  //   Int32 rv = 1;
+  //   Console.WriteLine(appUserID);
+  //   Console.WriteLine(rv);
+  //   return rv != 0;
+  // }
+}

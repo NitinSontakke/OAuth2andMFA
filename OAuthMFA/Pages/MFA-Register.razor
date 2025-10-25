@@ -1,0 +1,119 @@
+﻿@page "/MFARegister"
+@inject ILocalStorageService localStorage
+@inject NavigationManager navigationManager
+@inject IDialogService dialogService
+<MudGrid>
+  <MudItem xs="4">
+    <h3>MFA Register</h3>
+  </MudItem>
+  <MudItem xs="8">
+  </MudItem>
+  <MudItem xs="1">
+  </MudItem>
+  <MudItem xs="6">
+    @*     <div class="image-container" style="overflow:auto;">
+ *@      <svg xmlns="http://www.w3.org/2000/svg" stroke="none" version="1.1" viewBox="0 0 70 70" width="60%" height="60%">
+      <path d="@mfaRegisterResponse.QrCode" fill="#000000" />
+    </svg>
+    @*     </div>
+ *@  </MudItem>
+  <MudItem xs="5">
+  </MudItem>
+  <MudItem xs="1">
+  </MudItem>
+  <MudItem xs="3">
+    <MudTextField Label="OTP" HelperText="Please enter 6 digit code shown in your authenticator app." @bind-Value="mfaAuthenticate.Code" InputType="InputType.Number" For="@(() => mfaAuthenticate.Code)" Required="true" MaxLength="6" />
+  </MudItem>
+  <MudItem xs="3">
+    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="CheckAuthentication" Class="ml-auto" Size="Size.Large">Authenticate</MudButton>
+  </MudItem>
+  <MudItem xs="5">
+  </MudItem>
+</MudGrid>
+<br />
+<br />
+<div>@mfaRegisterResponse.Instructions</div>
+<br />
+<div>@mfaRegisterResponse.ManualEntryKey</div>
+<br />
+<br />
+<div>@mfaAuthenticateResponse.Message</div>
+
+@code {
+
+  MFAAuthenticateRequest mfaAuthenticate = new MFAAuthenticateRequest();
+
+  MFAAuthenticateResponse mfaAuthenticateResponse = new();
+
+  MFARegisterRequest setupMfaRequest = new MFARegisterRequest();
+
+  MFARegisterResponse mfaRegisterResponse = new();
+
+  private String? email = String.Empty;
+  private String? secret = String.Empty;
+
+  /// <summary>
+  ///
+  /// </summary>
+  /// <returns></returns>
+  public async Task CheckAuthentication()
+  {
+    TotpService totpService = new TotpService();
+    Boolean success = totpService.ValidateCode(mfaRegisterResponse.Secret, mfaAuthenticate.Code);
+    StateHasChanged();
+    if (success)
+    {
+      IDialogReference confirmDelete = await OpenDialogAsync();
+      DialogResult? dialogResult = await confirmDelete.Result;
+      if (dialogResult == null || dialogResult.Canceled) return;
+      var test = dialogResult == null;
+      navigationManager.NavigateTo("/");
+    }
+    else
+    {
+      IDialogReference confirmDelete = await OpenDialogAsyncFailed();
+      DialogResult? dialogResult = await confirmDelete.Result;
+    }
+  }
+
+  /// <summary>
+  /// 
+  /// </summary>
+  /// <returns></returns>
+  protected override async Task OnInitializedAsync()
+  {
+    email = await localStorage.GetItemAsync<String>("email");
+    TotpService totpService = new TotpService();
+    mfaRegisterResponse = totpService.GenerateSecret(email);
+    await localStorage.SetItemAsync<String>("secret", mfaRegisterResponse.Secret);
+  }
+
+  /// <summary>
+  /// Shows the authentiation successful dialog
+  /// </summary>
+  /// <returns></returns>
+  private Task<IDialogReference> OpenDialogAsync()
+  {
+    var parameters = new DialogParameters<Dialog>
+        {
+            { x => x.ConfirmationMessage, "The code provided from Authenticator app is successfully validated!" },
+        };
+
+    return dialogService.ShowAsync<Dialog>("Success!", parameters, null);
+  }
+
+  /// <summary>
+  /// Shows the authentiation failed dialog
+  /// </summary>
+  /// <returns></returns>
+  private Task<IDialogReference> OpenDialogAsyncFailed()
+  {
+    var parameters = new DialogParameters<Dialog>
+        {
+            { x => x.ConfirmationMessage, " Authentication FAILED for the code provided, please try again. Good luck!" },
+        };
+
+    return dialogService.ShowAsync<Dialog>("Failed!", parameters, null);
+  }
+
+}

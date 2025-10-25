@@ -1,0 +1,31 @@
+﻿
+<MudDialog>
+  <DialogContent>
+    <MudGrid Style="padding: 12px;">
+    <MudItem xs="12">
+        <MudText>@ConfirmationMessage</MudText>
+    </MudItem>
+    </MudGrid>
+  </DialogContent>
+  <DialogActions>
+  <MudGrid Style="padding: 12px;">
+      <MudItem xs="9">
+      </MudItem>
+      <MudItem xs="3">
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.CheckCircle" Color="Color.Primary" OnClick="Submit" Class="ml-auto" Size="Size.Large">&nbsp;&nbsp;&nbsp;&nbsp;Ok&nbsp;&nbsp;&nbsp;&nbsp;</MudButton>
+      </MudItem>
+    </MudGrid>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter]
+  private MudDialogInstance MudDialog { get; set; } = new();
+
+  [Parameter]
+  public String ConfirmationMessage { get; set; } = String.Empty;
+
+  private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+  private void Cancel() => MudDialog.Cancel();
+}

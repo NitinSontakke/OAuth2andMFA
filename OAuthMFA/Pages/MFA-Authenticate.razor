@@ -1,0 +1,109 @@
+﻿@page "/MFAAuthenticate"
+@inject NavigationManager navigationManager
+@inject ILocalStorageService localStorage
+@inject IDialogService dialogService
+
+<MudGrid>
+  <MudItem xs="4">
+
+  </MudItem>
+  <MudItem xs="4">
+    <MudText Color="Color.Tertiary" Typo="Typo.h4">MFA Authenticate</MudText>
+  </MudItem>
+  <MudItem xs="4">
+
+  </MudItem>
+  <MudItem xs="4">
+
+  </MudItem>
+  <MudItem xs="4">
+    <MudNumericField Label="Authenticator Code" HelperText="Please enter 6 digit code shown in your authenticator app." @bind-Value="mfaAuthenticateRequest.Code" InputType="InputType.Number" For="@(() => mfaAuthenticateRequest.Code)" Required="true" MaxLength="6" TextChanged="EnableDisable" HideSpinButtons="true" />
+  </MudItem>
+  <MudItem xs="4">
+
+  </MudItem>
+  <MudItem xs="4">
+
+  </MudItem>
+  <MudItem xs="4">
+    <MudButton ButtonType="ButtonType.Submit" Disabled="@disabled" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.QuestionMark" Color="Color.Primary" OnClick="CheckAuthentication" Class="ml-auto" Size="Size.Large">Authenticate</MudButton>
+  </MudItem>
+  <MudItem xs="4">
+
+  </MudItem>
+</MudGrid>
+
+@code {
+
+  MFAAuthenticateRequest mfaAuthenticateRequest = new MFAAuthenticateRequest();
+
+  MFAAuthenticateResponse mfaAuthenticateResponse = new();
+
+  Boolean disabled = true;
+
+  /// <summary>
+  /// Authenticate the code provided by the user!
+  /// </summary>
+  /// <returns></returns>
+  public async Task CheckAuthentication()
+  {
+    String secret = await localStorage.GetItemAsync<String>("secret") ?? String.Empty;
+    TotpService totpService = new TotpService();
+    Boolean success = totpService.ValidateCode(secret, mfaAuthenticateRequest.Code);
+    StateHasChanged();
+    if (success)
+    {
+      await localStorage.SetItemAsync<Boolean>("success", success);
+      IDialogReference confirmDelete = await OpenDialogAsync();
+      DialogResult? dialogResult = await confirmDelete.Result;
+      if (dialogResult == null || dialogResult.Canceled) return;
+      var test = dialogResult == null;
+      navigationManager.NavigateTo("/");
+    }
+    else
+    {
+      IDialogReference confirmDelete = await OpenDialogAsyncFailed();
+      DialogResult? dialogResult = await confirmDelete.Result;
+    }
+    StateHasChanged();
+  }
+
+  /// <summary>
+  /// Show the dialog stating that authentication is successfully!
+  /// </summary>
+  /// <returns></returns>
+  private Task<IDialogReference> OpenDialogAsync()
+  {
+    // var options = new DialogOptions { CloseOnEscapeKey = true };
+    var parameters = new DialogParameters<Dialog>
+        {
+            { x => x.ConfirmationMessage, "The code provided from Authenticator app is successfully validated!" },
+        };
+
+    return dialogService.ShowAsync<Dialog>("Success!", parameters, null);
+  }
+
+  /// <summary>
+  /// Ensures that the Authenticate button is enabled / disabled depending on code is entered or not.
+  /// </summary>
+  /// <param name="value">Automatically passed to method by the framework.</param>
+  private void EnableDisable(String value)
+  {
+    disabled = String.IsNullOrEmpty(value) || value.Length != 6;
+    StateHasChanged();
+  }
+
+  /// <summary>
+  /// Shows the authentiation failed dialog
+  /// </summary>
+  /// <returns></returns>
+  private Task<IDialogReference> OpenDialogAsyncFailed()
+  {
+    var parameters = new DialogParameters<Dialog>
+        {
+            { x => x.ConfirmationMessage, " Authentication FAILED for the code provided, please try again. Good luck!" },
+        };
+
+    return dialogService.ShowAsync<Dialog>("Failed!", parameters, null);
+  }
+}

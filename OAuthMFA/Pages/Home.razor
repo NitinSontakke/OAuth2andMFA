@@ -1,0 +1,129 @@
+﻿@page "/"
+@inject NavigationManager navigationManager
+@inject ILocalStorageService localStorage
+@inject IJSRuntime jsRuntime
+@inject IDialogService dialogService
+<PageTitle>OAuth 2.0 and MFA Implementation</PageTitle>
+<h1>Hello, @(String.IsNullOrEmpty(name) ? "Blazor Developer" : name)!</h1>
+@if (!String.IsNullOrEmpty(picture))
+{
+  <img  src="@picture" style="border-radius:50%; width:100px; height:100px; align-content: end;" />
+}
+<br />
+<p>In modern application development scenarios, implementing OAuth authentication in combination with MFA (Multi-factor authentication) has become a pretty much de-facto standard.</p>
+<p>As a developer, you may (or may not) come across a scenario wherein you will have to implement it yourself. In either circumstances, it is good to know how it actually works.</p>
+<p>That's precisely the purpose of this project.</p>
+<p>We will try to cover each and every step involved.</p>
+@if (success)
+{
+  <h6>You have successfully completed this demo. To start over again, please click on 'Logout' button</h6>
+  <br />
+}
+<h1>Enjoy coding!</h1>
+<MudGrid>
+  <MudItem xs="3">
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Color="Color.Primary" @onclick="Login">Login</MudButton>
+  </MudItem>
+  <MudItem xs="3">
+    @if ((!String.IsNullOrEmpty(name)) && String.IsNullOrEmpty(secret) )
+    {
+      <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.AppRegistration" Color="Color.Success" @onclick="MFARegister">MFA Register</MudButton>
+    }
+  </MudItem>
+  <MudItem xs="3">
+    @if (!String.IsNullOrEmpty(secret))
+    {
+      <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Unarchive" Color="Color.Tertiary" @onclick="MFAAuthenticate">MFA Authenticate</MudButton>
+    }
+  </MudItem>
+  <MudItem xs="3">
+    @if (!String.IsNullOrEmpty(name))
+    {
+      <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Logout" Color="Color.Error" @onclick="Logout">Logout</MudButton>
+    }
+  </MudItem>
+</MudGrid>
+@code
+{
+  /// <summary>
+  /// Place holder private variables to store data fetched from local storage.
+  /// </summary>
+  private String? name = String.Empty;
+  private String? picture = String.Empty;
+  private String? email = String.Empty;
+  private String? secret = String.Empty;
+  private Boolean success = false;
+  private Int32 count = 0;
+
+  /// <summary>
+  /// Redirect to the Login page!
+  /// </summary>
+  private void Login()
+  {
+    navigationManager.NavigateTo("login");
+  }
+
+  /// <summary>
+  /// Remove everything that we stored in local storage.
+  /// And only App sign-out from Google's end.
+  /// </summary>
+  private async void Logout()
+  {
+    IDialogReference confirmDelete = await OpenDialogAsync();
+    DialogResult dialogResult = await confirmDelete.Result;
+    var test = dialogResult == null;
+    if (dialogResult.Canceled) return;
+    await localStorage.RemoveItemAsync("name");
+    await localStorage.RemoveItemAsync("picture");
+    await localStorage.RemoveItemAsync("email");
+    await localStorage.RemoveItemAsync("secret");
+    await localStorage.RemoveItemAsync("success");
+    await jsRuntime.InvokeVoidAsync("signOutGoogle");
+    navigationManager.NavigateTo("/", forceLoad: true);
+  }
+
+  /// <summary>
+  /// In following method elements are being fetched from local storage.
+  /// Depending on their values, decision is being table which buttong / messages to be rendered or not.
+  /// </summary>
+  /// <returns></returns>
+  protected override async Task OnInitializedAsync()
+  {
+    name = await localStorage.GetItemAsync<String>("name");
+    picture = await localStorage.GetItemAsync<String>("picture");
+    secret = await localStorage.GetItemAsync<String>("secret");
+    email = await localStorage.GetItemAsync<String>("email");
+    success = await localStorage.GetItemAsync<Boolean>("success");
+  }
+
+  /// <summary>
+  /// This method shows the dialog. User must manually logout from browser. 
+  /// </summary>
+  /// <returns></returns>
+  private Task<IDialogReference> OpenDialogAsync()
+  {
+    // var options = new DialogOptions { CloseOnEscapeKey = true };
+    var parameters = new DialogParameters<Dialog>
+        {
+            { x => x.ConfirmationMessage, "This only log you out from this demo app. You still remain logged in browser!" },
+        };
+
+    return dialogService.ShowAsync<Dialog>("IMPORTANT!", parameters, null);
+  }
+
+  /// <summary>
+  /// Redirect to MFA Register page!
+  /// </summary>
+  private void MFARegister()
+  {
+    navigationManager.NavigateTo("MFARegister");
+  }
+
+  /// <summary>
+  /// Redirect to MFA Authenticate page!
+  /// </summary>
+  private void MFAAuthenticate()
+  {
+    navigationManager.NavigateTo("MFAAuthenticate");
+  }
+}
