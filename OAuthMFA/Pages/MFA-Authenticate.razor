@@ -2,7 +2,7 @@
 @inject NavigationManager navigationManager
 @inject ILocalStorageService localStorage
 @inject IDialogService dialogService
-
+<PageTitle>OAuth 2.0 and MFA - Authenticate the code</PageTitle>
 <MudGrid>
   <MudItem xs="4">
 
@@ -17,7 +17,7 @@
 
   </MudItem>
   <MudItem xs="4">
-    <MudNumericField Label="Authenticator Code" HelperText="Please enter 6 digit code shown in your authenticator app." @bind-Value="mfaAuthenticateRequest.Code" InputType="InputType.Number" For="@(() => mfaAuthenticateRequest.Code)" Required="true" MaxLength="6" TextChanged="EnableDisable" HideSpinButtons="true" />
+    <MudNumericField Label="Authenticator Code" HelperText="Please enter 6 digit code shown in your authenticator app." @bind-Value="mfaAuthenticateRequest.Code" For="@(() => mfaAuthenticateRequest.Code)" Required="true" MaxLength="6" TextChanged="EnableDisable" HideSpinButtons="true" />
   </MudItem>
   <MudItem xs="4">
 

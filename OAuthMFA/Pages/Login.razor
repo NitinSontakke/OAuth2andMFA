@@ -3,7 +3,7 @@
 @inject NavigationManager navigationManager
 @inject IJSRuntime jsRuntime
 @inject ILocalStorageService localStorage
-
+<PageTitle>OAuth 2.0 and MFA - Login to Google</PageTitle>
 <MudGrid>
   <MudItem xs="12">
     &nbsp;
@@ -49,19 +49,19 @@
       </MudGrid>
       <MudGrid>
         <MudItem xs="3">
+          &nbsp;
         </MudItem>
         <MudItem xs="6">
           <div class="g_id_signin"></div>
         </MudItem>
         <MudItem xs="3">
+          &nbsp;
         </MudItem>
       </MudGrid>
       <MudGrid>
         <MudItem xs="3">
         </MudItem>
         <MudItem xs="6">
-          <MudButton Variant="@Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Color="@Color.Secondary" onclick="Back2Home">Back to Home Page</MudButton>
-          <MudButton Variant="@Variant.Filled" StartIcon="@Icons.Material.Filled.Logout" Color="@Color.Error" onclick="Back2Home">Logout</MudButton>
         </MudItem>
         <MudItem xs="3">
         </MudItem>
@@ -76,11 +76,11 @@
 
 @code {
 
-  private void Back2Home()
-  {
-    navigationManager.NavigateTo("/");
-  }
-
+  /// <summary>
+  /// Renders the button.
+  /// </summary>
+  /// <param name="firstRender">True by default, passed by the framework</param>
+  /// <returns></returns>
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (firstRender)
@@ -91,6 +91,13 @@
     }
   }
 
+  /// <summary>
+  ///
+  /// </summary>
+  /// <param name="name">On successful login to Google, it sends back this information.</param>
+  /// <param name="email"></param>
+  /// <param name="picture"></param>
+  /// <returns></returns>
   [JSInvokable]
   public async Task SetUser(string name, string email, string picture)
   {
@@ -99,34 +106,7 @@
     await localStorage.SetItemAsync("email", email);
     await localStorage.SetItemAsync("picture", picture);
     StateHasChanged();
-    // Boolean userExists = await UserExists(email);
-
-    // if (userExists)
-    // {
-    //   Console.WriteLine("if userExists");
-    //   if (appUser.MfaEnabled)
-    //   {
-    //     Console.WriteLine("if mfaEnabled");
-    //     if (appUser.TotpSecret == null)
-    //       navigationManager.NavigateTo("/mfa-register", forceLoad: true);
-    //     else
-    //       navigationManager.NavigateTo("/mfa-authenticate", forceLoad: true);
-    //   }
-    //   else
-        navigationManager.NavigateTo("/");
-    // }
-    // else
-    //   navigationManager.NavigateTo("/unauthorized", forceLoad: true);
-
+    navigationManager.NavigateTo("/");
     await Task.CompletedTask;
   }
-
-  // private async Task<Boolean> UserExists(String appUserID)
-  // {
-  //   Console.WriteLine("UserExists called in Login page");
-  //   Int32 rv = 1;
-  //   Console.WriteLine(appUserID);
-  //   Console.WriteLine(rv);
-  //   return rv != 0;
-  // }
 }

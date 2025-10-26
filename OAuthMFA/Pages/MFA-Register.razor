@@ -2,6 +2,7 @@
 @inject ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 @inject IDialogService dialogService
+<PageTitle>OAuth 2.0 and MFA - Register with an app</PageTitle>
 <MudGrid>
   <MudItem xs="4">
     <h3>MFA Register</h3>
@@ -53,7 +54,7 @@
   private String? secret = String.Empty;
 
   /// <summary>
-  ///
+  /// Authenticate the code entered by the user from Authenticator App.
   /// </summary>
   /// <returns></returns>
   public async Task CheckAuthentication()
@@ -77,7 +78,9 @@
   }
 
   /// <summary>
-  /// 
+  /// When page is loaded, retrieve email address from local storage so that secret can be generated from it.
+  /// Then store the secret in local storage so that it can be used later.
+  /// Please note that this is for DEMO purpose only. Ideally the secrets will be stored in database on server side.
   /// </summary>
   /// <returns></returns>
   protected override async Task OnInitializedAsync()
@@ -85,7 +88,7 @@
     email = await localStorage.GetItemAsync<String>("email");
     TotpService totpService = new TotpService();
     mfaRegisterResponse = totpService.GenerateSecret(email);
-    await localStorage.SetItemAsync<String>("secret", mfaRegisterResponse.Secret);
+    await localStorage.SetItemAsync<String>("secret", mfaRegisterResponse.Secret ?? String.Empty);
   }
 
   /// <summary>

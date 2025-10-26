@@ -53,7 +53,6 @@
   private String? email = String.Empty;
   private String? secret = String.Empty;
   private Boolean success = false;
-  private Int32 count = 0;
 
   /// <summary>
   /// Redirect to the Login page!
@@ -70,8 +69,8 @@
   private async void Logout()
   {
     IDialogReference confirmDelete = await OpenDialogAsync();
-    DialogResult dialogResult = await confirmDelete.Result;
-    var test = dialogResult == null;
+    DialogResult? dialogResult = await confirmDelete.Result;
+    if (dialogResult == null) return;
     if (dialogResult.Canceled) return;
     await localStorage.RemoveItemAsync("name");
     await localStorage.RemoveItemAsync("picture");

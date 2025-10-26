@@ -13,7 +13,7 @@ namespace OAuthMFA.Classes
     /// <summary>
     /// Generates a new TOTP secret for a user. TOTP stands for time based OTP.
     /// </summary>
-    public MFARegisterResponse GenerateSecret(string userEmail, string appName = "OAuth and MFA Demo")
+    public MFARegisterResponse GenerateSecret(string? userEmail, string appName = "OAuth and MFA Demo")
     {
       // Generate cryptographically secure random secret
       var secretBytes = new byte[SecretLength];
@@ -108,8 +108,9 @@ namespace OAuthMFA.Classes
       return unixTime / TimeStepSeconds;
     }
 
-    private string GenerateQrCodeUrl(string userEmail, string appName, string secret)
+    private string GenerateQrCodeUrl(string? userEmail, string appName, string secret)
     {
+      if (String.IsNullOrEmpty(userEmail)) return String.Empty;
       var issuer = Uri.EscapeDataString(appName);
       var user = Uri.EscapeDataString(userEmail);
       return $"otpauth://totp/{issuer}:{user}?secret={secret}&issuer={issuer}&digits={CodeDigits}&period={TimeStepSeconds}";
