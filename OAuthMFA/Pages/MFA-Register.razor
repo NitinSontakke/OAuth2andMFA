@@ -2,44 +2,46 @@
 @inject ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 @inject IDialogService dialogService
+<style>
+  /* Removes all spacing between grid items for a merged appearance */
+  .no-spacing .mud-grid-item {
+    padding: 3 !important;
+  }
+</style>
 <PageTitle>OAuth 2.0 and MFA - Register with an app</PageTitle>
-<MudGrid>
-  <MudItem xs="4">
-    <h3>MFA Register</h3>
-  </MudItem>
-  <MudItem xs="8">
-  </MudItem>
-  <MudItem xs="1">
+<MudGrid Class="no-spacing">
+  <MudItem xs="3">
   </MudItem>
   <MudItem xs="6">
-    @*     <div class="image-container" style="overflow:auto;">
- *@      <svg xmlns="http://www.w3.org/2000/svg" stroke="none" version="1.1" viewBox="0 0 70 70" width="60%" height="60%">
+    <h3>Register App with Authenticator</h3>
+  </MudItem>
+  <MudItem xs="3">
+  </MudItem>
+  <MudItem xs="5">
+    <svg xmlns="http://www.w3.org/2000/svg" stroke="none" version="1.1" viewBox="0 0 70 70" width="70%" height="70%">
       <path d="@mfaRegisterResponse.QrCode" fill="#000000" />
     </svg>
-    @*     </div>
- *@  </MudItem>
-  <MudItem xs="5">
   </MudItem>
-  <MudItem xs="1">
+  <MudItem xs="4">
+    <MudNumericField Label="Authenticator Code" HelperText="Please enter 6 digit code shown in your authenticator app." @bind-Value="mfaAuthenticate.Code" For="@(() => mfaAuthenticate.Code)" Required="true" MaxLength="6" TextChanged="EnableDisable" HideSpinButtons="true" />
   </MudItem>
   <MudItem xs="3">
-    <MudTextField Label="OTP" HelperText="Please enter 6 digit code shown in your authenticator app." @bind-Value="mfaAuthenticate.Code" InputType="InputType.Number" For="@(() => mfaAuthenticate.Code)" Required="true" MaxLength="6" />
+    <MudButton ButtonType="ButtonType.Submit" Disabled="@disabled" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="CheckAuthentication" Class="ml-auto" Size="Size.Large">Authenticate</MudButton>
   </MudItem>
-  <MudItem xs="3">
-    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="CheckAuthentication" Class="ml-auto" Size="Size.Large">Authenticate</MudButton>
+  <MudItem xs="7">
+    <MudField Label="@mfaRegisterResponse.Instructions" Variant="Variant.Outlined"></MudField>
   </MudItem>
   <MudItem xs="5">
+    <MudField Label="@mfaRegisterResponse.ManualEntryKey" Variant="Variant.Outlined"></MudField>
+  </MudItem>
+  <MudItem xs="2">
+  </MudItem>
+  <MudItem xs="8">
+    <MudField Label="Feel free to click on 'MFA Apps' menu option to see the list of Authenticator Apps" Variant="Variant.Outlined"></MudField>
+  </MudItem>
+  <MudItem xs="2">
   </MudItem>
 </MudGrid>
-<br />
-<br />
-<div>@mfaRegisterResponse.Instructions</div>
-<br />
-<div>@mfaRegisterResponse.ManualEntryKey</div>
-<br />
-<br />
-<div>@mfaAuthenticateResponse.Message</div>
-
 @code {
 
   MFAAuthenticateRequest mfaAuthenticate = new MFAAuthenticateRequest();
@@ -49,6 +51,8 @@
   MFARegisterRequest setupMfaRequest = new MFARegisterRequest();
 
   MFARegisterResponse mfaRegisterResponse = new();
+
+  Boolean disabled = true;
 
   private String? email = String.Empty;
   private String? secret = String.Empty;
@@ -60,10 +64,11 @@
   public async Task CheckAuthentication()
   {
     TotpService totpService = new TotpService();
-    Boolean success = totpService.ValidateCode(mfaRegisterResponse.Secret, mfaAuthenticate.Code);
+    Boolean authenticated = totpService.ValidateCode(mfaRegisterResponse.Secret, mfaAuthenticate.Code);
     StateHasChanged();
-    if (success)
+    if (authenticated)
     {
+      await localStorage.SetItemAsync<Boolean>("registered", authenticated);
       IDialogReference confirmDelete = await OpenDialogAsync();
       DialogResult? dialogResult = await confirmDelete.Result;
       if (dialogResult == null || dialogResult.Canceled) return;
@@ -100,6 +105,7 @@
     var parameters = new DialogParameters<Dialog>
         {
             { x => x.ConfirmationMessage, "The code provided from Authenticator app is successfully validated!" },
+            { x => x.ButtonColor, Color.Success }
         };
 
     return dialogService.ShowAsync<Dialog>("Success!", parameters, null);
@@ -114,9 +120,20 @@
     var parameters = new DialogParameters<Dialog>
         {
             { x => x.ConfirmationMessage, " Authentication FAILED for the code provided, please try again. Good luck!" },
+            { x => x.ButtonColor, Color.Error }
         };
 
     return dialogService.ShowAsync<Dialog>("Failed!", parameters, null);
+  }
+
+  /// <summary>
+  /// Ensures that the Authenticate button is enabled / disabled depending on code is entered or not.
+  /// </summary>
+  /// <param name="value">Automatically passed to method by the framework.</param>
+  private void EnableDisable(String value)
+  {
+    disabled = String.IsNullOrEmpty(value) || value.Length != 6;
+    StateHasChanged();
   }
 
 }

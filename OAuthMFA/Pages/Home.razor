@@ -14,7 +14,7 @@
 <p>As a developer, you may (or may not) come across a scenario wherein you will have to implement it yourself. In either circumstances, it is good to know how it actually works.</p>
 <p>That's precisely the purpose of this project.</p>
 <p>We will try to cover each and every step involved.</p>
-@if (success)
+@if (registered && authenticated)
 {
   <h6>You have successfully completed this demo. To start over again, please click on 'Logout' button</h6>
   <br />
@@ -25,19 +25,19 @@
     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Color="Color.Primary" @onclick="Login">Login</MudButton>
   </MudItem>
   <MudItem xs="3">
-    @if ((!String.IsNullOrEmpty(name)) && String.IsNullOrEmpty(secret) )
+    @if ((!String.IsNullOrEmpty(name)) && !registered)
     {
       <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.AppRegistration" Color="Color.Success" @onclick="MFARegister">MFA Register</MudButton>
     }
   </MudItem>
   <MudItem xs="3">
-    @if (!String.IsNullOrEmpty(secret))
+    @if (registered)
     {
       <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Unarchive" Color="Color.Tertiary" @onclick="MFAAuthenticate">MFA Authenticate</MudButton>
     }
   </MudItem>
   <MudItem xs="3">
-    @if (!String.IsNullOrEmpty(name))
+    @if ((!String.IsNullOrEmpty(name)))
     {
       <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Logout" Color="Color.Error" @onclick="Logout">Logout</MudButton>
     }
@@ -52,7 +52,8 @@
   private String? picture = String.Empty;
   private String? email = String.Empty;
   private String? secret = String.Empty;
-  private Boolean success = false;
+  private Boolean authenticated = false;
+  private Boolean registered = false;
 
   /// <summary>
   /// Redirect to the Login page!
@@ -76,7 +77,8 @@
     await localStorage.RemoveItemAsync("picture");
     await localStorage.RemoveItemAsync("email");
     await localStorage.RemoveItemAsync("secret");
-    await localStorage.RemoveItemAsync("success");
+    await localStorage.RemoveItemAsync("authenticated");
+    await localStorage.RemoveItemAsync("registered");
     await jsRuntime.InvokeVoidAsync("signOutGoogle");
     navigationManager.NavigateTo("/", forceLoad: true);
   }
@@ -92,7 +94,8 @@
     picture = await localStorage.GetItemAsync<String>("picture");
     secret = await localStorage.GetItemAsync<String>("secret");
     email = await localStorage.GetItemAsync<String>("email");
-    success = await localStorage.GetItemAsync<Boolean>("success");
+    authenticated = await localStorage.GetItemAsync<Boolean>("authenticated");
+    registered = await localStorage.GetItemAsync<Boolean>("registered");
   }
 
   /// <summary>

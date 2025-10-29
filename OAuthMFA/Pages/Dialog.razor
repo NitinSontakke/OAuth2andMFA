@@ -12,7 +12,7 @@
       <MudItem xs="9">
       </MudItem>
       <MudItem xs="3">
-        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.CheckCircle" Color="Color.Primary" OnClick="Submit" Class="ml-auto" Size="Size.Large">&nbsp;&nbsp;&nbsp;&nbsp;Ok&nbsp;&nbsp;&nbsp;&nbsp;</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@Icons.Material.Outlined.CheckCircle" Color="@ButtonColor" OnClick="Submit" Class="ml-auto" Size="Size.Large">&nbsp;&nbsp;&nbsp;&nbsp;Ok&nbsp;&nbsp;&nbsp;&nbsp;</MudButton>
       </MudItem>
     </MudGrid>
   </DialogActions>
@@ -24,6 +24,9 @@
 
   [Parameter]
   public String ConfirmationMessage { get; set; } = String.Empty;
+
+  [Parameter]
+  public Color ButtonColor { get; set; } = Color.Primary;
 
   private void Submit() => MudDialog.Close(DialogResult.Ok(true));
 

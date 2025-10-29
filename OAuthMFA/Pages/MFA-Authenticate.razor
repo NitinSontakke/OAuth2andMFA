@@ -49,11 +49,11 @@
   {
     String secret = await localStorage.GetItemAsync<String>("secret") ?? String.Empty;
     TotpService totpService = new TotpService();
-    Boolean success = totpService.ValidateCode(secret, mfaAuthenticateRequest.Code);
+    Boolean authenticated = totpService.ValidateCode(secret, mfaAuthenticateRequest.Code);
     StateHasChanged();
-    if (success)
+    if (authenticated)
     {
-      await localStorage.SetItemAsync<Boolean>("success", success);
+      await localStorage.SetItemAsync<Boolean>("authenticated", authenticated);
       IDialogReference confirmDelete = await OpenDialogAsync();
       DialogResult? dialogResult = await confirmDelete.Result;
       if (dialogResult == null || dialogResult.Canceled) return;
@@ -78,6 +78,7 @@
     var parameters = new DialogParameters<Dialog>
         {
             { x => x.ConfirmationMessage, "The code provided from Authenticator app is successfully validated!" },
+            { x => x.ButtonColor, Color.Success }
         };
 
     return dialogService.ShowAsync<Dialog>("Success!", parameters, null);
@@ -101,7 +102,8 @@
   {
     var parameters = new DialogParameters<Dialog>
         {
-            { x => x.ConfirmationMessage, " Authentication FAILED for the code provided, please try again. Good luck!" },
+            { x =>  x.ConfirmationMessage, " Authentication FAILED for the code provided, please try again. Good luck!"},
+            { x => x.ButtonColor, Color.Error }
         };
 
     return dialogService.ShowAsync<Dialog>("Failed!", parameters, null);
